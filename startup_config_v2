@@ -1,0 +1,96 @@
+#!/bin/bash
+
+sudo su
+
+PGUSER=postgres
+PGPASSWORD=Random123456
+PGNAME=test_webapp_db
+
+
+#Skip restarts of services during installation
+sed -i 's/#$nrconf{restart} = '"'"'i'"'"';/$nrconf{restart} = '"'"'a'"'"';/g' /etc/needrestart/needrestart.conf
+sleep 5
+#Update general dependancies
+
+apt-get update -y && apt-get upgrade -y
+
+#github install and authentication
+sleep 5
+#apt-get install gh -y 
+sudo apt-get install git -y
+sleep 5
+#touch /home/mytoken.txt && chmod 777 /home/mytoken.txt && echo "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" >> /home/mytoken.txt && gh auth login --with-token < /home/mytoken.txt && rm /home/mytoken.txt
+
+cd /home/ && git clone https://github.com/PMprovectus/test-webapp-db.git
+sleep 5
+mv /home/test-webapp-db/pg_hba.conf /etc/postgresql/16/main/pg_hba.conf && mv /home/test-webapp-db/postgresql.conf /etc/postgresql/16/main/postgresql.conf
+
+#Installing PostgresSql and PgAdmin
+sleep 5
+exec bash
+sleep 1
+sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+sleep 5
+apt update
+sleep 5
+apt install postgresql -y
+
+#Linux Firewall rule allow inbound port 5432 for db and port 443+80 for pgadmin
+
+ufw allow 5432/tcp && ufw allow 443/tcp && ufw allow 80/tcp && ufw allow 22/tcp
+
+#Settting up the Database
+#Creating DB user and logging in
+#usermod -aG $PGUSER && su -l $PGUSER
+PGUSER=postgres
+PGPASSWORD=Random123456
+PGNAME=test_webapp_db
+sleep 5
+exit
+sleep 5
+psql -c "ALTER USER postgres PASSWORD '$PGPASSWORD'"
+sleep 5
+#Accessing PostgresSQL and creating the DB
+
+psql -c "CREATE DATABASE $PGNAME" && psql -c "CREATE USER $PGUSER WITH ENCRYPTED PASSWORD '$PGPASSWORD';" && psql -c "GRANT ALL PRIVILEGES ON DATABASE $PGNAME to $PGUSER;" && psql -c "\c $PGNAME"
+sleep 5
+#Placeholder for replacing the pg_hba.conf with a custom one
+sudo su
+sleep 5
+systemctl restart postgresql
+
+
+#Downloading and installing pgadmin
+
+sleep 5
+exec bash
+sleep 1
+curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg && sh -c 'echo "deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main" > /etc/apt/sources.list.d/pgadmin4.list && apt update'
+sleep 5
+apt update -y
+sleep 5
+apt install pgadmin4-web -y 
+sleep 5
+PGADMIN_SETUP_PASSWORD=Random123456
+PGADMIN_SETUP_EMAIL=philipp.meier@provectus.de  
+/usr/pgadmin4/bin/setup-web.sh --yes
+sleep 5
+exec bash
+sleep 1
+#Update node.js to latest LTS
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+sleep 5
+nvm install --lts 
+sleep 5
+exec bash
+sleep 5
+#Install Sequelize and connect to PostgresSQL DB
+npm install --save sequelize 
+sleep 5
+npm install --save pg pg-hstore
+sleep 5
+#Connecting Sequelize to PostgresSQL
+
+node /home/test-webapp-db/connect_sequelize.js
+sleep 1
+echo "Passt!"
