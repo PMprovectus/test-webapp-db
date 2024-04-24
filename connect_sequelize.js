@@ -4,7 +4,7 @@ const { Client } = require('pg'); // Für PostgreSQL
 // Konfiguration für die Datenbankverbindung
 const dbConfig = {
   user: 'postgres',
-  password: 'webapp',
+  password: 'Random123456',
   host: 'localhost', // Ändere den Host entsprechend deiner Datenbank
   port: 5432, // Portnummer (z. B. 5432 für PostgreSQL, 3306 für MySQL)
   database: 'test_webapp_db', // Name deiner Datenbank
